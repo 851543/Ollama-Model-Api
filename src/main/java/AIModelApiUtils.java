@@ -1,9 +1,7 @@
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClients;
-
 import java.io.IOException;
-import java.net.http.HttpClient;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class AIModelApiUtils {
@@ -12,22 +10,42 @@ public class AIModelApiUtils {
 
     private final static String URL = "http://localhost:11434/api";
 
-    private final static Map paramMap = new HashMap<String,String>();
+    private final static Map paramMap = new HashMap<String,Object>();
 
-    private final static  boolean stream = false;
+    private final static  boolean stream = true;
 
-    static {
+    /**
+     * 生成补全
+     * @return
+     */
+    public static String generate(){
         paramMap.put("model",MODEL);
-        paramMap.put("prompt","def compute_gcd(a, b):");
+        paramMap.put("prompt","你好 你是谁");
         paramMap.put("stream",stream);
-        paramMap.put("suffix","    return result");
-        Map temperature = new HashMap();
-        temperature.put("temperature",0);
-        paramMap.put("options",temperature);
+        String doURL = URL + "/generate";
+        String response = null;
+        try {
+            response = HttpClientUtil.doPost4Json(doURL, paramMap);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return response;
     }
 
-    public static String generate(){
-        String doURL = URL + "/generate";
+    /**
+     * 生成聊天
+     * @return
+     */
+    public static String chat(){
+        paramMap.put("model",MODEL);
+        List messageArray= new ArrayList();
+        Map messageObject= new HashMap();
+        messageObject.put("role","user");
+        messageObject.put("content","你好 你是谁");
+        messageArray.add(messageObject);
+        paramMap.put("messages",messageArray);
+        paramMap.put("stream",stream);
+        String doURL = URL + "/chat";
         String response = null;
         try {
             response = HttpClientUtil.doPost4Json(doURL, paramMap);
