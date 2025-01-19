@@ -1,3 +1,4 @@
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.config.RequestConfig;
@@ -12,7 +13,10 @@ import org.apache.http.impl.client.HttpClients;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.util.EntityUtils;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
@@ -167,6 +171,63 @@ public class HttpClientUtil {
 
         return resultString;
     }
+
+    /**
+     * 发送POST方式请求
+     * @param url
+     * @param paramMap
+     * @return
+     * @throws IOException
+     */
+    public static void doPost4JsonStream(String url, Map<String, String> paramMap) throws IOException {
+        // 创建Httpclient对象
+        CloseableHttpClient httpClient = HttpClients.createDefault();
+        CloseableHttpResponse response = null;
+
+        try {
+            // 创建Http Post请求
+            HttpPost httpPost = new HttpPost(url);
+
+            if (paramMap != null) {
+                //构造json格式数据
+                JSONObject jsonObject = new JSONObject();
+                for (Map.Entry<String, String> param : paramMap.entrySet()) {
+                    jsonObject.put(param.getKey(),param.getValue());
+                }
+                StringEntity entity = new StringEntity(jsonObject.toString(),"utf-8");
+                //设置请求编码
+                entity.setContentEncoding("utf-8");
+                //设置数据类型
+                entity.setContentType("application/json");
+                httpPost.setEntity(entity);
+            }
+
+            httpPost.setConfig(builderRequestConfig());
+
+            // 执行http请求
+            response = httpClient.execute(httpPost);
+
+            InputStream inputStream = response.getEntity().getContent();
+            BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
+
+            String line;
+            while ((line = reader.readLine()) != null) {
+                // 处理每一行数据
+                JSONObject jsonObject = JSON.parseObject(line);
+                String responsePart = jsonObject.getString("response");
+                System.out.print(responsePart); // 使用 print 而不是 println 避免自动换行
+            }
+        } catch (Exception e) {
+            throw e;
+        } finally {
+            try {
+                response.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
     private static RequestConfig builderRequestConfig() {
         return RequestConfig.custom()
                 .setConnectTimeout(TIMEOUT_MSEC)

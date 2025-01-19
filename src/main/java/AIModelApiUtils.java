@@ -1,3 +1,4 @@
+import java.io.BufferedReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -30,6 +31,22 @@ public class AIModelApiUtils {
             e.printStackTrace();
         }
         return response;
+    }
+
+    /**
+     * 生成补全
+     * @return
+     */
+    public static void generateStream(){
+        paramMap.put("model",MODEL);
+        paramMap.put("prompt","朱BB是谁?");
+        paramMap.put("stream",stream);
+        String doURL = URL + "/generate";
+        try {
+            HttpClientUtil.doPost4JsonStream(doURL, paramMap);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     /**
